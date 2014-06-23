@@ -1,9 +1,9 @@
 #!/bin/sh
-#An example of how to use erd_analyzer. Runs erd_analyzer with some "script" operates of files with a certain depth<NUMBER> prefix. Saves plotfile and runs gnuplot.
-NUMBER=$1
+#An example of how to use erd_analyzer. Runs erd_analyzer with some "script" operates of files with a certain depth<WHATEVER> prefix. Saves plotfile and runs gnuplot.
+WHATEVER=$1
 LOW=$2
 HIGH=$3
-echo "load prefix depth$NUMBER
+echo "load prefix depth$WHATEVER
 set low $LOW
 set high $HIGH
 join 35-Cl 37-Cl
@@ -19,5 +19,5 @@ xrange [-200:1000]
 yrange [0:80]
 plotinfo
 results
-plot plot$NUMBER" |./erd_analyzer
-gnuplot -persist plot$NUMBER.plt
+plot plot$WHATEVER" |erd_analyzer
+gnuplot -persist plot$WHATEVER.plt
