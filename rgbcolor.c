@@ -46,7 +46,9 @@ rgbcolor_t *load_colors(char *filename, rgbcolor_t *first) {
         }
     }
     fclose(in);
+#ifdef DEBUG
     fprintf(stderr, "Read %i lines from %s, got %i colors successfully.\n", linenumber, filename, ok_colors);
+#endif
     free(name);
     free(line);
     return first;

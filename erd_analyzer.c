@@ -1,3 +1,4 @@
+#define VERSION 0.0.1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
         case 1:
             break;
         default:
-            fprintf(stderr, "Usage: %s [prefix]\n", argv[0]);
+            fprintf(stderr, "ERD analyzer version %s.\nUsage: %s [prefix]\n", xstr(VERSION), argv[0]);
             return -1;
     }
     depthscale.low=-1000000.0;
