@@ -17,6 +17,8 @@ sort
 results
 xrange [-200:1000]
 yrange [0:80]
+set linewidth 2.0
+set scalinglines
 plotinfo
 results
 plot plot$WHATEVER" |erd_analyzer

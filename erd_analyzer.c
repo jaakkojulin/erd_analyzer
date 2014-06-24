@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
     depthscale.scale=1.0;
     plot_options.x_autoscale=1;
     plot_options.y_autoscale=1;
+    plot_options.scalinglines=1;
+    plot_options.linewidth=1.0;
     plot_options.x_low=0.0;
     plot_options.y_low=0.0;
     plot_options.x_high=0.0;
@@ -82,22 +84,38 @@ int main(int argc, char **argv) {
         if(sscanf(user_input, "yrange [%lf:%lf]", &plot_options.y_low, &plot_options.y_high)==2) {
             plot_options.y_autoscale=0;
         }
-        if(strcmp(user_input, "autoscale x")==0) {
-            plot_options.x_autoscale=1;
+        sscanf(user_input, "set linewidth %lf", &plot_options.linewidth);
+        if(strncmp(user_input, "set scalinglines", 16)==0) {
+            plot_options.scalinglines=1;
+            continue;
         }
-        if(strcmp(user_input, "autoscale y")==0) {
-            plot_options.y_autoscale=1;
+        if(strncmp(user_input, "unset scalinglines", 18)==0) {
+            plot_options.scalinglines=0;
+            fprintf(stderr, "Trying to do it...\n");
+            continue;
         }
-        if(strcmp(user_input, "autoscale xy")==0) {
+        
+        if(strncmp(user_input, "autoscale x", 11)==0) {
+            plot_options.x_autoscale=1;
+            continue;
+        }
+        if(strncmp(user_input, "autoscale y", 11)==0) {
+            plot_options.y_autoscale=1;
+            continue;
+        }
+        if(strncmp(user_input, "autoscale xy", 12)==0) {
             plot_options.x_autoscale=1;
             plot_options.y_autoscale=1;
+            continue;
         }
 
         if(sscanf(user_input, "set low %lf", &depthscale.low)==1){
             find_scaling_factor(depthfiles, &depthscale);
+            continue;
         }
         if(sscanf(user_input, "set high %lf", &depthscale.high)==1) {
             find_scaling_factor(depthfiles, &depthscale);
+            continue;
         }
         if(strncmp(user_input, "results", 7)==0) { 
             find_scaling_factor(depthfiles, &depthscale);

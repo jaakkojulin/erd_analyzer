@@ -10,6 +10,8 @@
 typedef struct plot_options {
     int x_autoscale; /* Let gnuplot handle x scales */
     int y_autoscale; /* and y */
+    int scalinglines; /* "arrows" plotted to indicate integration range */
+    double linewidth;
     double x_low;
     double x_high;
     double y_low;
