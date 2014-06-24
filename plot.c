@@ -46,8 +46,8 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
     n=number_of_depthfiles(depthfiles);
     n_depths=depthfiles->n_depths; /* Number of depths in first file */
     fprintf(out, "SCALE=100*%lf\n", depthscale->scale);
-    fprintf(out, "set arrow 1 from %g,%g to %g,%g nohead lt 0\n", depthscale->low, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->low, plot_options->y_autoscale?100.0:plot_options->y_high);
-    fprintf(out, "set arrow 2 from %g,%g to %g,%g nohead lt 0\n", depthscale->high, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->high, plot_options->y_autoscale?100.0:plot_options->y_high);
+    fprintf(out, "set arrow 1 from %g,%g to %g,%g nohead lt 0 lw 2\n", depthscale->low, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->low, plot_options->y_autoscale?100.0:plot_options->y_high);
+    fprintf(out, "set arrow 2 from %g,%g to %g,%g nohead lt 0 lw 2\n", depthscale->high, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->high, plot_options->y_autoscale?100.0:plot_options->y_high);
     i=0;
     if(!plot_options->x_autoscale) {
         fprintf(out, "set xrange [%g:%g]\n", plot_options->x_low, plot_options->x_high);
@@ -62,9 +62,9 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
             this->color = colors; /* The first color is the default */ 
         }
         if(this->A) {
-            fprintf(out, "%s '%s' index %i using 1:($2*SCALE) with lines lt 1 lc rgbcolor \"#%02x%02x%02x\" title \"%i-%s\"%s", i?"":"plot", plotdatafilename, i, this->color->r, this->color->g, this->color->b, this->A, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
+            fprintf(out, "%s '%s' index %i using 1:($2*SCALE) with lines lt 1 lw 2 lc rgbcolor \"#%02x%02x%02x\" title \"%i-%s\"%s", i?"":"plot", plotdatafilename, i, this->color->r, this->color->g, this->color->b, this->A, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
         } else {
-            fprintf(out, "%s '%s' index %i using 1:($2*SCALE) with lines lt 1 lc rgbcolor \"#%02x%02x%02x\" title \"%s\"%s", i?"":"plot", plotdatafilename, i, this->color->r, this->color->g, this->color->b, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
+            fprintf(out, "%s '%s' index %i using 1:($2*SCALE) with lines lt 1 lw 2 lc rgbcolor \"#%02x%02x%02x\" title \"%s\"%s", i?"":"plot", plotdatafilename, i, this->color->r, this->color->g, this->color->b, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
         }
         i++;
     }
