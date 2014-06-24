@@ -93,9 +93,6 @@ int main(int argc, char **argv) {
             plot_options.y_autoscale=1;
         }
 
-
-
-
         if(sscanf(user_input, "set low %lf", &depthscale.low)==1){
             find_scaling_factor(depthfiles, &depthscale);
         }
@@ -122,23 +119,18 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "Found previous %i %i %i %s\n", this->uniq_id, this->Z, this->A, this->filename);
             continue;
         }
-        if(sscanf(user_input, "swap %s %s", s, s2)==2) {
+        if(sscanf(user_input, "swap %100s %100s", s, s2)==2) {
             depthfiles=depthfile_swap(depthfiles, find_depthfile_by_name(depthfiles, elements, s), find_depthfile_by_name(depthfiles, elements, s2));
             print_depthfile_chain(depthfiles);
         }
 
-        if(sscanf(user_input, "remove %s", s)==1) {
-            this=find_depthfile_by_name(depthfiles, elements, s);
-            depthfiles=destroy_depthfile(depthfiles, this);
-            continue;
-        }
-        if(sscanf(user_input, "remove %s", s)==1) {
+       if(sscanf(user_input, "remove %100s", s)==1) {
             for(this=depthfiles; this != NULL; this=find_depthfile_by_name(this->next, elements, s)) {
                 depthfiles=destroy_depthfile(depthfiles, this);
             }
             continue;
         } 
-        if(sscanf(user_input, "load %s %i %i", s, &Z, &A)==3) {
+        if(sscanf(user_input, "load %100s %i %i", s, &Z, &A)==3) {
             this=load_depthfile(colors, s, Z, A);
             add_depthfile(depthfiles, this);
             continue;
