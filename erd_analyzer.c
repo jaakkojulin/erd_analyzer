@@ -203,7 +203,11 @@ int main(int argc, char **argv) {
         }
         if(sscanf(user_input, "join %s %s", s, s2)==2) {
             this=join_depthfiles(find_depthfile_by_name(depthfiles, elements, s), find_depthfile_by_name(depthfiles, elements, s2));
-            add_depthfile(depthfiles, this);
+            if(!this) {
+                fprintf(stderr, "Could not join.\n");
+            } else {
+                add_depthfile(depthfiles, this);
+            }
             continue;
         }
         if(strncmp(user_input, "sort", 4)==0) {

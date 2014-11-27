@@ -83,6 +83,15 @@ depthfile_t *join_depthfiles(depthfile_t *a, depthfile_t *b) { /* PROBLEM: filen
     int n_depths;
     int i;
     depthfile_t *result;
+    if(a==NULL || b==NULL) {
+        fprintf(stderr, "One of the depthfiles is nonexistent (NULL).\n");
+        return NULL;
+    }
+    if(a==b) {
+        fprintf(stderr, "Attempted to join a depthfile to the same depthfile. I don't get the point.\n");
+        return NULL;
+    }
+    
     if(a->n_depths != b->n_depths) {
         fprintf(stderr, "Attempted to join two depthfiles with different depth bins. This is not accepted right now.\n");
         return NULL;
