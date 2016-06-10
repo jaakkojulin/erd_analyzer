@@ -11,7 +11,6 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
     FILE *in, *out, *outdata;
     char *line;
     int i, n=0;
-    int n_depths=0;
     char *plotfilename=calloc(strlen(filename)+5, sizeof(char));
     char *plotdatafilename=calloc(strlen(filename)+5, sizeof(char));
     strncpy(plotfilename, filename, strlen(filename));
@@ -44,7 +43,6 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
     /* Write a SCALE= value according to "results" */
     /* Count how many depthfiles.*/
     n=number_of_depthfiles(depthfiles);
-    n_depths=depthfiles->n_depths; /* Number of depths in first file */
     fprintf(out, "SCALE=100*%lf\n", depthscale->scale);
     if(plot_options->scalinglines) {
         fprintf(out, "set arrow 1 from %g,%g to %g,%g nohead lt 0 lw %g\n", depthscale->low, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->low, plot_options->y_autoscale?100.0:plot_options->y_high, plot_options->linewidth);
