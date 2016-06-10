@@ -62,12 +62,21 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
         linenumber++;
         if(*line == '#')
             continue;
+#ifdef OLD_FORMAT
+        if(sscanf(line, "%lf %lf %lf %lf %lf\n", &depth, &b, &c, &conc, &e)==5) {
+            depthfile->depths[depth_i]=depth;
+            depthfile->concentrations[depth_i]=conc;
+            depthfile->counts[depth_i]=0;
+            depth_i++;
+        }
+#else
         if(sscanf(line, "%lf %lf %lf %lf %lf %lf %i\n", &depth, &b, &c, &conc, &e, &f, &counts)==7) {
             depthfile->depths[depth_i]=depth;
             depthfile->concentrations[depth_i]=conc;
             depthfile->counts[depth_i]=counts;
             depth_i++;
         }
+#endif
         if(depth_i > n_depths) {
             fprintf(stderr, "Something odd at the depthfile, too many depths (was expecting %i)!\n", n_depths);
             break;
