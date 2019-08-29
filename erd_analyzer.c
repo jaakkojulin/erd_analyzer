@@ -72,10 +72,11 @@ int main(int argc, char **argv) {
             break;
         if(sscanf(user_input, "integrate %100s %lf %lf", s, &depthscale.low, &depthscale.high)==3) {
             result=average_concentration(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high, NULL, &counts);
-            fprintf(stderr, "result: %g%%\n", result*100);
-            fprintf(stderr, "counts: %i\n", counts);
-            fprintf(stderr, "relative error (1/sqrt(counts-1)): %e\n", 1/sqrt(1.0*counts-1));
-            fprintf(stderr, "error: %g%%\n", 100*result*1/sqrt(1.0*counts-1));
+            fprintf(stdout, "areal density: %g\n", areal_density(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high));
+            fprintf(stdout, "result: %g%%\n", result*100);
+            fprintf(stdout, "counts: %i\n", counts);
+            fprintf(stdout, "relative error (1/sqrt(counts-1)): %e\n", 1/sqrt(1.0*counts-1));
+            fprintf(stdout, "error: %g%%\n", 100*result*1/sqrt(1.0*counts-1));
             continue;
         }
         if(sscanf(user_input, "xrange [%lf:%lf]", &plot_options.x_low, &plot_options.x_high)==2) {
@@ -148,7 +149,7 @@ int main(int argc, char **argv) {
             }
             continue;
         } 
-        if(sscanf(user_input, "load %100s %i %i", s, &Z, &A)==3) {
+        if(sscanf(user_input, "load %i %i %100s", &Z, &A, s)==3) {
             this=load_depthfile(colors, s, Z, A);
             add_depthfile(depthfiles, this);
             continue;
@@ -168,9 +169,15 @@ int main(int argc, char **argv) {
             continue;
         }
         if(sscanf(user_input, "disable scaling %100s", s)==1) {
+            if(strncmp(s, "all", 3) == 0) {
+                for(this=depthfiles; this != NULL; this=this->next) {
+                    this->use_in_scaling=0;
+                }
+            } else {
             this=find_depthfile_by_name(depthfiles, elements, s);
             if(this)
                 this->use_in_scaling=0;
+            }
             continue;
         }
         if(sscanf(user_input, "enable scaling %100s", s)==1) {

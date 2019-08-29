@@ -15,8 +15,8 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
     char *plotdatafilename=calloc(strlen(filename)+5, sizeof(char));
     strncpy(plotfilename, filename, strlen(filename));
     strncpy(plotdatafilename, filename, strlen(filename));
-    strncat(plotfilename, ".plt", 4);
-    strncat(plotdatafilename, ".dat", 4);
+    strcat(plotfilename, ".plt");
+    strcat(plotdatafilename, ".dat");
     in=fopen(headers_filename, "r");
     out=fopen(plotfilename, "w");
     outdata=fopen(plotdatafilename, "w");

@@ -319,7 +319,7 @@ depthfile_t *load_depthfiles_by_prefix(element_t *elements, depthfile_t *depthfi
     glob_t globbuf;
     int prefix_length=strlen(prefix)+1; /* including the ".", e.g. prefix=="depth" => "depth." is 6 characters. */
     strncpy(pattern, prefix, strlen(prefix));
-    strncat(pattern, ".*", 2);
+    strcat(pattern, ".*");
     glob(pattern, 0, NULL, &globbuf);
     int Z,A,i;
     depthfile_t *depthfile;
@@ -328,7 +328,7 @@ depthfile_t *load_depthfiles_by_prefix(element_t *elements, depthfile_t *depthfi
         A=find_A(depthfile_name+prefix_length);
         Z=find_Z(elements, depthfile_name+prefix_length);
         if(Z) {
-            fprintf(stderr, "Loaded %s (Z=%i, A=%i)\n", depthfile_name, Z, A);
+            fprintf(stderr, "Loading %s (Z=%i, A=%i)", depthfile_name, Z, A);
             depthfile=load_depthfile(colors, depthfile_name, Z, A);
             depthfiles=add_depthfile(depthfiles, depthfile);
         }
