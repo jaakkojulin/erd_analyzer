@@ -27,7 +27,7 @@ install:
 	$(INSTALL) elements.txt $(datadir)
 
 $(objects): %.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -fPIC -c $(CFLAGS) $< -o $@
 
 erd_analyzer: $(objects)
 	$(CC) $(CFLAGS) -o erd_analyzer $(objects) $(ldflags) $(libs)
