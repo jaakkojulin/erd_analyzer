@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         if(fgets(user_input, MAX_LINE_LEN, stdin)==NULL)
             break;
         if(sscanf(user_input, "integrate %100s %lf %lf", s, &depthscale.low, &depthscale.high)==3) {
-            integration_result result=integrate_depthfile(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high);
+            integration_result_t r=integrate_depthfile(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high);
             fprintf(stdout, "areal density: %g\n", r.adensity);
             fprintf(stdout, "result: %g%%\n", r.conc*100);
             fprintf(stdout, "counts: %i\n", r.counts);

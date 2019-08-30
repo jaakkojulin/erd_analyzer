@@ -55,7 +55,6 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
     depthfile->plot=1;
     depthfile->bins=calloc(n_depths, sizeof(depthbin_t));
     depthfile->color=colors;
-    
     line=calloc(MAX_LINE_LEN, sizeof(char));
     while(fgets(line, MAX_LINE_LEN, in)) {
         linenumber++;
@@ -76,7 +75,7 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
             fprintf(stderr, "Depth bin correction (half width): %g\n", bin_correction);
 #endif
         }
-        if(depth_i >= n_depths) {
+        if(depth_i > n_depths) {
             fprintf(stderr, "Something odd at the depthfile, too many depths (was expecting %i)!\n", n_depths);
             break;
         }
@@ -86,7 +85,10 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
         if(depth_i)
             depthfile->bins[depth_i-1].high = depthfile->bins[depth_i].low;
     }
-    depthfile->bins[n_depths].high += bin_correction;
+    depthfile->bins[n_depths-1].high += bin_correction;
+#ifdef DEBUG
+    fprintf(stderr, "%i bins, range from %g to %g\n", n_depths, depthfile->bins[0].low, depthfile->bins[n_depths-1].high);
+#endif
     fclose(in);
     free(line);
     return depthfile;
@@ -328,7 +330,7 @@ depthfile_t *load_depthfiles_by_prefix(element_t *elements, depthfile_t *depthfi
         A=find_A(depthfile_name+prefix_length);
         Z=find_Z(elements, depthfile_name+prefix_length);
         if(Z) {
-            fprintf(stderr, "Loading %s (Z=%i, A=%i)", depthfile_name, Z, A);
+            fprintf(stderr, "Loading %s (Z=%i, A=%i)\n", depthfile_name, Z, A);
             depthfile=load_depthfile(colors, depthfile_name, Z, A);
             depthfiles=add_depthfile(depthfiles, depthfile);
         }

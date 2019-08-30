@@ -16,12 +16,17 @@ double stat_error(double value, int counts) {
 integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, double high) { 
     integration_result_t r;
     int i;
+    r.low=depthfile->bins[0].low;
+    r.high=depthfile->bins[depthfile->n_depths-1].high;
     r.counts=0;
     r.uniq_id=-1;
     int n=0;
-    for(i=0; i<depthfile->n_depths-1; i++) {
+#ifdef DEBUG
+    fprintf(stderr, "Integrating depthfile %i from %g to %g\n", depthfile->uniq_id, low, high);
+#endif
+    for(i=0; i<depthfile->n_depths; i++) {
         depthbin_t *bin=&depthfile->bins[i];
-        if(low < bin->low)
+        if(bin->low < low)
             continue;
         if(bin->high > high) {
             r.high=bin->low; /* This bin is (partially) too high, but the low limit should have been included in the previous bin */
@@ -31,8 +36,12 @@ integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, dou
             r.low=bin->low;
         }
         r.adensity += (bin->high-bin->low)*bin->conc;
+        r.counts += bin->counts;
         n++;
     }
+#ifdef DEBUG
+    fprintf(stderr, "%i out of %i bins inside. Actual range from %g to %g\n", n, depthfile->n_depths, r.low, r.high);
+#endif
     r.conc = r.adensity/(r.high - r.low);
     r.uniq_id=depthfile->uniq_id;
     return r;

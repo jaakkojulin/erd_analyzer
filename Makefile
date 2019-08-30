@@ -8,7 +8,8 @@ datadir=$(prefix)/data
 
 
 CFLAGS=-g -Wall -I. -DDATADIR=$(datadir)
-#CFLAGS += -DOLD_FORMAT
+
+#CFLAGS += -DDEBUG
 
 
 objects=rgbcolor.o elements.o plot.o depthfile.o depthprofile.o erd_analyzer.o
