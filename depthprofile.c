@@ -19,6 +19,7 @@ integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, dou
     r.low=depthfile->bins[0].low;
     r.high=depthfile->bins[depthfile->n_depths-1].high;
     r.counts=0;
+    r.adensity=0.0;
     r.uniq_id=-1;
     int n=0;
 #ifdef DEBUG
@@ -39,11 +40,11 @@ integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, dou
         r.counts += bin->counts;
         n++;
     }
-#ifdef DEBUG
-    fprintf(stderr, "%i out of %i bins inside. Actual range from %g to %g\n", n, depthfile->n_depths, r.low, r.high);
-#endif
     r.conc = r.adensity/(r.high - r.low);
     r.uniq_id=depthfile->uniq_id;
+#ifdef DEBUG
+    fprintf(stderr, "%i out of %i bins inside. Actual range from %g to %g. Conc %g, areal density %g\n", n, depthfile->n_depths, r.low, r.high, r.conc, r.adensity);
+#endif
     return r;
 }
 
@@ -103,6 +104,7 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
   //  fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, ad_all, counts_all); 
     
     find_scaling_factor(depthfiles, depthscale);
+    fprintf(out, "Scaling factor: %g\n", depthscale->scale);
     fprintf(out, "SCALED RESULTS FROM %g to %g\n", depthscale->low, depthscale->high);
     fputs(result_header, out);
     for(this=depthfiles; this != NULL; this=this->next) {

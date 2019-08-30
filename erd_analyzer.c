@@ -111,14 +111,15 @@ int main(int argc, char **argv) {
 
         if(sscanf(user_input, "set low %lf", &depthscale.low)==1){
             find_scaling_factor(depthfiles, &depthscale);
+            fprintf(stderr, "Scaling factor: %g\n", depthscale.scale);
             continue;
         }
         if(sscanf(user_input, "set high %lf", &depthscale.high)==1) {
             find_scaling_factor(depthfiles, &depthscale);
+            fprintf(stderr, "Scaling factor: %g\n", depthscale.scale);
             continue;
         }
         if(strncmp(user_input, "results", 7)==0) { 
-            find_scaling_factor(depthfiles, &depthscale);
             make_results_table(depthfiles, elements, NULL, &depthscale);
             continue;
         }
