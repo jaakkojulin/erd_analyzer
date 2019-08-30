@@ -72,7 +72,7 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
         if(!this->plot)
             continue;
         for(i=0; i<this->n_depths; i++) { 
-            fprintf(outdata, "%g %g\n", this->depths[i], this->concentrations[i]);
+            fprintf(outdata, "%g %g %g\n", this->bins[i].low, this->bins[i].high, this->bins[i].conc);
         }
         fprintf(outdata, "\n\n");
     }

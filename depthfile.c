@@ -38,6 +38,7 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
     }
     in=fopen(filename, "r");
     double depth, b, c, conc, e, f;
+    double bin_correction=0.0;
     int counts;
     int depth_i=0;
     if(!in) {
@@ -52,9 +53,7 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
     depthfile->n_depths=n_depths;
     depthfile->use_in_scaling=1;
     depthfile->plot=1;
-    depthfile->depths=calloc(n_depths, sizeof(double));
-    depthfile->concentrations=calloc(n_depths, sizeof(double));
-    depthfile->counts=calloc(n_depths, sizeof(int));
+    depthfile->bins=calloc(n_depths, sizeof(depthbin_t));
     depthfile->color=colors;
     
     line=calloc(MAX_LINE_LEN, sizeof(char));
@@ -62,26 +61,32 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
         linenumber++;
         if(*line == '#')
             continue;
-#ifdef OLD_FORMAT
-        if(sscanf(line, "%lf %lf %lf %lf %lf\n", &depth, &b, &c, &conc, &e)==5) {
-            depthfile->depths[depth_i]=depth;
-            depthfile->concentrations[depth_i]=conc;
-            depthfile->counts[depth_i]=0;
-            depth_i++;
-        }
-#else
+
         if(sscanf(line, "%lf %lf %lf %lf %lf %lf %i\n", &depth, &b, &c, &conc, &e, &f, &counts)==7) {
-            depthfile->depths[depth_i]=depth;
-            depthfile->concentrations[depth_i]=conc;
-            depthfile->counts[depth_i]=counts;
+            depthbin_t *bin=&depthfile->bins[depth_i];
+            bin->low=depth; /* Will be corrected later */
+            bin->high=depth; /* Will be corrected later */
+            bin->counts=counts;
+            bin->conc=conc;
             depth_i++;
         }
+        if(depth_i==2) { /* Exactly after two bins, assume even binning and calculate the necessary shift */
+            bin_correction=(depthfile->bins[1].low-depthfile->bins[0].low)/2.0;
+#ifdef DEBUG
+            fprintf(stderr, "Depth bin correction (half width): %g\n", bin_correction);
 #endif
-        if(depth_i > n_depths) {
+        }
+        if(depth_i >= n_depths) {
             fprintf(stderr, "Something odd at the depthfile, too many depths (was expecting %i)!\n", n_depths);
             break;
         }
     }
+    for(depth_i=0; depth_i < n_depths; depth_i++) {
+        depthfile->bins[depth_i].low -= bin_correction;
+        if(depth_i)
+            depthfile->bins[depth_i-1].high = depthfile->bins[depth_i].low;
+    }
+    depthfile->bins[n_depths].high += bin_correction;
     fclose(in);
     free(line);
     return depthfile;
@@ -107,7 +112,7 @@ depthfile_t *join_depthfiles(depthfile_t *a, depthfile_t *b) { /* PROBLEM: filen
     }
     n_depths=a->n_depths;
     for(i=0; i<n_depths; i++) {
-        if(a->depths[i] != b->depths[i]) {
+        if(a->bins[i].low != b->bins[i].low || a->bins[i].high != b->bins[i].high) {
             fprintf(stderr, "Attempted to join two depthfiles with different depth bins. This is not accepted right now.\n");
             return NULL;
         }
@@ -135,13 +140,12 @@ depthfile_t *join_depthfiles(depthfile_t *a, depthfile_t *b) { /* PROBLEM: filen
     }
     a->plot = 0;
     b->plot = 0;
-    result->depths=calloc(n_depths, sizeof(double));
-    result->concentrations=calloc(n_depths, sizeof(double));
-    result->counts=calloc(n_depths, sizeof(int));
+    result->bins=calloc(n_depths, sizeof(depthbin_t));
     for(i=0; i<n_depths; i++) {
-        result->depths[i]=a->depths[i];
-        result->concentrations[i]=a->concentrations[i]+b->concentrations[i];
-        result->counts[i]=a->counts[i]+b->counts[i];
+        result->bins[i].low=a->bins[i].low;
+        result->bins[i].high=a->bins[i].high;
+        result->bins[i].conc=a->bins[i].conc + b->bins[i].conc;
+        result->bins[i].counts=a->bins[i].counts + b->bins[i].counts;
     }
     return result;
 }
@@ -198,12 +202,8 @@ depthfile_t *destroy_depthfile(depthfile_t *depthfiles, depthfile_t *depthfile) 
     }
     if(depthfile->filename)
         free(depthfile->filename);
-    if(depthfile->depths)
-        free(depthfile->depths);
-    if(depthfile->concentrations)
-        free(depthfile->concentrations);
-    if(depthfile->counts)
-        free(depthfile->counts);
+    if(depthfile->bins)
+        free(depthfile->bins);
     free(depthfile); /* Freeing memory */
     return out;
 }

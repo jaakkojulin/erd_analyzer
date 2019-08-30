@@ -12,89 +12,51 @@ double stat_error(double value, int counts) {
     return(value/(sqrt(1.0*(counts-1))));
 }
 
-int low_index_for_depth(depthfile_t *depthfile, double depth) { /* -1 ... n */
-    int index=depthfile->n_depths; /* Case: depth > highest */
+
+integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, double high) { 
+    integration_result_t r;
     int i;
-    for(i=0; i<depthfile->n_depths; i++) {
-        if(depthfile->depths[i] >= depth) {
-            index=i-1;
+    r.counts=0;
+    r.uniq_id=-1;
+    int n=0;
+    for(i=0; i<depthfile->n_depths-1; i++) {
+        depthbin_t *bin=&depthfile->bins[i];
+        if(low < bin->low)
+            continue;
+        if(bin->high > high) {
+            r.high=bin->low; /* This bin is (partially) too high, but the low limit should have been included in the previous bin */
+            break;
         }
+        if(n==0) {
+            r.low=bin->low;
+        }
+        r.adensity += (bin->high-bin->low)*bin->conc;
+        n++;
     }
-    fprintf(stderr, "Low index for %g is %i (depth %g)\n", depth, index, depthfile->depths[index>=0?index:0]);
-    return index;
+    r.conc = r.adensity/(r.high - r.low);
+    r.uniq_id=depthfile->uniq_id;
+    return r;
 }
 
 double areal_density(depthfile_t *depthfile, double depth_low, double depth_high) {
-    int i;
-    double t;
     double sum=0.0;
-
-    for(i=1; i<depthfile->n_depths; i++) {
-        if(depthfile->depths[i-1] < depth_low && depthfile->depths[i] < depth_low) /* too low, continue */
-            continue;
-        if(depthfile->depths[i-1] > depth_high && depthfile->depths[i] > depth_high) /* too high, stop */
-            break;
-        t=depthfile->depths[i]-depthfile->depths[i-1]; /* typical case */
-        if(depthfile->depths[i-1] < depth_low) {  /* lowest bin, partial */
-            t=depthfile->depths[i]-depth_low;
-//            fprintf(stderr, "Partial bin low i=%i t=%g\n", i, t);
-            if(i==1) {
-                fprintf(stderr, "Ignoring!\n");
-                t=0.0;
-            }
-        }
-        if(depthfile->depths[i] > depth_high) { /* highest bin, partial */
-            t=depth_high-depthfile->depths[i-1];
-//            fprintf(stderr, "Partial bin high i=%i t=%g\n", i, t);
-            if(i==depthfile->n_depths-1) {
-                fprintf(stderr, "IGnoring!\n");
-                t=0.0;
-            }
-        }
-        sum += depthfile->concentrations[i]*t;
-    }
     return sum;
-}
-
-double average_concentration(depthfile_t *depthfile, double depth_low, double depth_high, double *sum_out, int *counts_out) {
-    /* Integrates between low and high depths, return result is the avg concentration, *sum is the result,of integration and counts are also given as output */ 
-    int i;
-    int n=0;
-    int counts=0;
-    double sum=0.0;
-    if(!depthfile)
-        return 0.0;
-    for(i=0; i<depthfile->n_depths; i++) {
-        if(depthfile->depths[i] >= depth_low && depthfile->depths[i] < depth_high) {
-            sum += depthfile->concentrations[i];
-            counts += depthfile->counts[i];
-            n++;
-        }
-    }
-    if(counts_out)
-        *counts_out=counts;
-    if(sum_out)
-        *sum_out=sum;
-    return(sum/(1.0*n));
 }
 
 void find_scaling_factor(depthfile_t *depthfiles, depth_scale_t *depthscale) {
     depthfile_t *this;
-    double sum, sum_all=0.0, conc, conc_all=0.0;
-    int counts, counts_all=0;
+    double adensity=0.0, conc=0.0;
+    int counts=0;
     for(this=depthfiles; this != NULL; this=this->next) {
-        conc=average_concentration(this, depthscale->low, depthscale->high, &sum, &counts);
-        if(this->use_in_scaling) {
-            conc_all += conc;
-            sum_all += sum;
-            counts_all += counts;
-        } else {
-            conc=0.0;
-            sum=0;
-            counts=0;
-        }
+        if(!this->use_in_scaling)
+            continue;
+        integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);
+        conc += r.conc;
+        adensity += r.adensity;
+        counts += r.counts;
     }
-    depthscale->scale=1.0/conc_all;
+    /* TODO: depthscale->low or high may be different from actual lows or highs in depthfiles(binning) */
+    depthscale->scale=1.0/conc;
 }
 
 void print_depthprofile(depthfile_t *depthfile) {
@@ -102,7 +64,7 @@ void print_depthprofile(depthfile_t *depthfile) {
     if(depthfile==NULL)
         return;
     for(i=0; i<depthfile->n_depths; i++) {
-        fprintf(stdout, "%i %i %g\t%g\n", depthfile->Z, depthfile->A, depthfile->depths[i], depthfile->concentrations[i]);
+        fprintf(stdout, "%i %i %5g %5g %7g\n", depthfile->Z, depthfile->A, depthfile->bins[i].low, depthfile->bins[i].high, depthfile->bins[i].conc);
     }
 }
 
@@ -126,38 +88,22 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     fprintf(out, "UNSCALED RESULTS FROM %g to %g\n", depthscale->low, depthscale->high);
     fputs(result_header, out);
     for(this=depthfiles; this != NULL; this=this->next) {
-        conc=average_concentration(this, depthscale->low, depthscale->high, &sum, &counts);
-        ad=areal_density(this, depthscale->low, depthscale->high);
-        if(this->use_in_scaling) {
-            conc_all += conc;
-            ad_all += ad;
-            sum_all += sum;
-            counts_all += counts;
-        } else {
-            conc=0.0;
-            sum=0;
-            counts=0;
-            ad=0.0;
-        }
-        fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, conc*100.0, stat_error(conc, counts)*100.0, ad, counts);
+        integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);    
+        fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, r.conc*100.0, stat_error(r.conc, r.counts)*100.0, r.adensity, r.counts);
     }
-    fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, ad_all, counts_all); 
+  //  fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, ad_all, counts_all); 
     
-    conc_all=0;
+    find_scaling_factor(depthfiles, depthscale);
     fprintf(out, "SCALED RESULTS FROM %g to %g\n", depthscale->low, depthscale->high);
     fputs(result_header, out);
     for(this=depthfiles; this != NULL; this=this->next) {
-        conc=average_concentration(this, depthscale->low, depthscale->high, &sum, &counts)*depthscale->scale;
-        ad=areal_density(this, depthscale->low, depthscale->high)*depthscale->scale;
-        if(this->use_in_scaling) {
-            conc_all += conc;
-            ad_all += ad;
-        } else {
-            conc=0.0;
-        }
-        fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, conc*100.0, stat_error(conc, counts)*100.0, ad, counts);
+        integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);    
+        if(!this->use_in_scaling)
+            continue;
+        fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, r.conc*100.0*depthscale->scale, stat_error(r.conc*depthscale->scale, r.counts)*100.0, r.adensity*depthscale->scale, r.counts);
+
     }
-    fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, ad_all, counts_all); 
+    //fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, ad_all, counts_all); 
     if(out != stdout) {
         fclose(out);
     }

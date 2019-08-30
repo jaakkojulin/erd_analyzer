@@ -4,6 +4,13 @@
 #include <rgbcolor.h>
 #include <elements.h>
 
+typedef struct depthbin {
+    double low;
+    double high;
+    int counts;
+    double conc;
+} depthbin_t;
+
 typedef struct depthfile {
     int uniq_id;
     char *filename;
@@ -13,9 +20,7 @@ typedef struct depthfile {
     int use_in_scaling;
     int plot;
     rgbcolor_t *color;
-    double *depths; /* table of n_depths */
-    double *concentrations; /* table of n_depths */
-    int *counts; /* table of n_depths */
+    depthbin_t *bins; /* Table of n_depths */
     struct depthfile *next;
 } depthfile_t;
 

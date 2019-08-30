@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
     plot_options.y_low=0.0;
     plot_options.x_high=0.0;
     plot_options.y_high=0.0;
-    double result;
     int counts;
     int  Z, A;
     depthfile_t *this;
@@ -71,12 +70,12 @@ int main(int argc, char **argv) {
         if(fgets(user_input, MAX_LINE_LEN, stdin)==NULL)
             break;
         if(sscanf(user_input, "integrate %100s %lf %lf", s, &depthscale.low, &depthscale.high)==3) {
-            result=average_concentration(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high, NULL, &counts);
-            fprintf(stdout, "areal density: %g\n", areal_density(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high));
-            fprintf(stdout, "result: %g%%\n", result*100);
-            fprintf(stdout, "counts: %i\n", counts);
-            fprintf(stdout, "relative error (1/sqrt(counts-1)): %e\n", 1/sqrt(1.0*counts-1));
-            fprintf(stdout, "error: %g%%\n", 100*result*1/sqrt(1.0*counts-1));
+            integration_result result=integrate_depthfile(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high);
+            fprintf(stdout, "areal density: %g\n", r.adensity);
+            fprintf(stdout, "result: %g%%\n", r.conc*100);
+            fprintf(stdout, "counts: %i\n", r.counts);
+            fprintf(stdout, "relative error (1/sqrt(counts-1)): %e\n", 1/sqrt(1.0*r.counts-1));
+            fprintf(stdout, "error: %g%%\n", 100*r.conc*1/sqrt(1.0*r.counts-1));
             continue;
         }
         if(sscanf(user_input, "xrange [%lf:%lf]", &plot_options.x_low, &plot_options.x_high)==2) {
