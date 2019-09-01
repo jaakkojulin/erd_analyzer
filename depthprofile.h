@@ -17,6 +17,7 @@ typedef struct integration_result {
     int counts;
     double low;
     double high;
+    depthfile_t *depthfile;
 } integration_result_t;
 
 integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, double high);
