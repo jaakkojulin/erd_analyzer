@@ -61,8 +61,7 @@ int main(int argc, char **argv) {
     plot_options.y_low=0.0;
     plot_options.x_high=0.0;
     plot_options.y_high=0.0;
-    int counts;
-    int  Z, A;
+    int Z, A;
     depthfile_t *this;
     char *s=calloc(101, sizeof(char));
     char *s2=calloc(101, sizeof(char));

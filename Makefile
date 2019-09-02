@@ -12,7 +12,7 @@ CFLAGS=-g -Wall -I. -DDATADIR=$(datadir)
 #CFLAGS += -DDEBUG
 
 
-objects=rgbcolor.o elements.o plot.o depthfile.o depthprofile.o erd_analyzer.o
+objects=rgbcolor.o elements.o plot.o depthfile.o depthprofile.o erd_analyzer.o round.o
 
 default: erd_analyzer
 
