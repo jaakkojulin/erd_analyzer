@@ -5,12 +5,13 @@
 
 #include <depthfile.h>
 #include <depthprofile.h>
+#include <round.h>
 
 #define pow2(x) ((x)*(x))
 
 double stat_error(double value, int counts) {
     if(counts < 2)
-        return(1.0);
+        return(0.0);
     return(value/(sqrt(1.0*(counts-1))));
 }
 
@@ -21,10 +22,12 @@ double stat_error_normalized(integration_result_t *results, int n, int i_this, d
     double scale=depthscale->scale;
     for(i=0; i < n; i++) {
         integration_result_t *r=&results[i];
+        if(r->counts < 2)
+            continue;
         if(i==i_this) {
-            err += pow2(1-r->conc*scale)/r->counts;
+            err += pow2(1-r->conc*scale)/(r->counts-1);
         } else {
-            err += pow2(r->conc*scale)/r->counts;
+            err += pow2(r->conc*scale)/(r->counts-1);
         }
     }
     return scale*conc*sqrt(err);
@@ -102,7 +105,7 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     FILE *out=NULL;
     int n_scaled=0;
     int i;
-    static const char *result_header=" ID Use?   Z         A   Conc   Err  Areal d.  Counts\n------------------------------------------------------\n";
+    static const char *result_header=" ID Use?   Z         A  Conc\%   Err  Areal d.  Counts\n------------------------------------------------------\n";
     /*                               "666 Yes  zzz (Zz) aaa  66.66  66.66   xxxxxx  666666  */
     static const char *result_line="%3i  %3s %3i (%*s) %3i  %5.2f  %5.2f   %6.1f  %6i\n";
     static const char *result_footer="Total:                %7.2f %6.2f   %6.1f %7i\n------------------------------------------------------\n\n";   
@@ -117,15 +120,17 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     fprintf(out, "UNSCALED RESULTS FROM %g to %g\n", depthscale->low, depthscale->high);
     fputs(result_header, out);
     for(this=depthfiles; this != NULL; this=this->next) {
-        if(this->use_in_scaling)
-            n_scaled++;
         integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);    
         fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, r.conc*100.0, stat_error(r.conc, r.counts)*100.0, r.adensity, r.counts);
+        if(this->use_in_scaling) {
+            n_scaled++;
+        }
         conc_all += r.conc;
         adensity_all += r.adensity;
         counts_all += r.counts;
     }
     fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, adensity_all, counts_all); 
+
     counts_all=0;
     adensity_all=0.0;
     conc_all=0.0;
@@ -153,6 +158,20 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
         counts_all += r->counts;
     }
     fprintf(out, result_footer, conc_all, stat_error(conc_all, counts_all), adensity_all, counts_all); 
+    fprintf(out, "SCALED CONC %g TO %g", depthscale->low, depthscale->high);
+    for(i=0; i < n_scaled; i++) {
+        fprintf(out, "  ");
+        integration_result_t *r=&scaled_results[i];
+        this=r->depthfile;
+        if(this->A) {
+            fprintf(out, "%i%s: ", this->A, elements[this->Z].name);
+        } else {
+            fprintf(out, "%s: ", elements[this->Z].name);
+        }
+        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(scaled_results, n_scaled, i, depthscale));
+        fprint_value_full(out, val);
+    }
+    fprintf(out, "\n");
     if(out != stdout) {
         fclose(out);
     }
