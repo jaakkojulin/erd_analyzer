@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     while(strncmp(user_input, "exit", 4)!=0) {
         if(fgets(user_input, MAX_LINE_LEN, stdin)==NULL)
             break;
-        if(sscanf(user_input, "integrate %100s %lf %lf", s, &depthscale.low, &depthscale.high)==3) {
+        if(sscanf(user_input, "integrate %100s", s)==1) {
             integration_result_t r=integrate_depthfile(find_depthfile_by_name(depthfiles, elements, s), depthscale.low, depthscale.high);
             fprintf(stdout, "areal density: %g\n", r.adensity);
             fprintf(stdout, "result: %g%%\n", r.conc*100);
@@ -225,8 +225,16 @@ int main(int argc, char **argv) {
             continue;
         }
         if(sscanf(user_input, "plot %s", s)==1) {
-            find_scaling_factor(depthfiles, &depthscale);
+            fprintf(stderr, "Creating plot with scaling factor: %g\n", depthscale.scale);
             create_plotfile(depthfiles, elements, colors, &depthscale, &plot_options, xstr(PLOTHEADERSFILE), s);
+            continue;
+        }
+        if(strncmp(user_input, "scale", 5)==0) {
+            find_scaling_factor(depthfiles, &depthscale);
+            continue;
+        }
+        if(sscanf(user_input, "set scale %lf", &depthscale.scale)==1) {
+            fprintf(stderr, "Manual scaling factor now: %g\n", depthscale.scale);
             continue;
         }
     }

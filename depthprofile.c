@@ -22,6 +22,8 @@ double stat_error_normalized(integration_result_t *results, int n, int i_this, d
     double scale=depthscale->scale;
     for(i=0; i < n; i++) {
         integration_result_t *r=&results[i];
+        if(!r->depthfile->use_in_scaling)
+            continue;
         if(r->counts < 2)
             continue;
         if(i==i_this) {
@@ -103,7 +105,7 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     double conc_all=0.0, adensity_all=0.0;
     int counts_all=0;
     FILE *out=NULL;
-    int n_scaled=0;
+    int n_files=0;
     int i;
     static const char *result_header=" ID Use?   Z         A  Conc\%   Err  Areal d.  Counts\n------------------------------------------------------\n";
     /*                               "666 Yes  zzz (Zz) aaa  66.66  66.66   xxxxxx  666666  */
@@ -116,41 +118,54 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     if(!out) {
         out=stdout;
     }
-    
+    n_files=number_of_depthfiles(depthfiles);
+    integration_result_t *results=malloc(sizeof(integration_result_t)*n_files);
     fprintf(out, "UNSCALED RESULTS FROM %g to %g\n", depthscale->low, depthscale->high);
     fputs(result_header, out);
+    i=0;
     for(this=depthfiles; this != NULL; this=this->next) {
-        integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);    
+        integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);
+        results[i]=r;
         fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, r.conc*100.0, stat_error(r.conc, r.counts)*100.0, r.adensity, r.counts);
-        if(this->use_in_scaling) {
-            n_scaled++;
-        }
         conc_all += r.conc;
         adensity_all += r.adensity;
         counts_all += r.counts;
+        i++;
     }
     fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, adensity_all, counts_all); 
+    fprintf(out, "UNSCALED AREALDENSITY %g TO %g", depthscale->low, depthscale->high);
+    for(i=0; i < n_files; i++) {
+        integration_result_t *r=&results[i];
+        this=r->depthfile;
+        fprintf(out, "  ");
+        if(this->A) {
+            fprintf(out, "%i%s: ", this->A, elements[this->Z].name);
+        } else {
+            fprintf(out, "%s: ", elements[this->Z].name);
+        }
+        if(r->adensity < 10.0 ) {
+            fprintf(out, "%.1f", r->adensity);
+        } else {
+            fprintf(out, "%.0f", r->adensity);
+        }
+    }
+
+    fprintf(out, "\n\n");
 
     counts_all=0;
     adensity_all=0.0;
     conc_all=0.0;
     find_scaling_factor(depthfiles, depthscale);
-    integration_result_t *scaled_results=malloc(sizeof(integration_result_t)*n_scaled);
     fprintf(out, "Scaling factor: %g\n", depthscale->scale);
     fprintf(out, "SCALED RESULTS FROM %g to %g\n", depthscale->low, depthscale->high);
     fputs(result_header, out);
-    i=0;
-    for(this=depthfiles; this != NULL; this=this->next) {
+    for(i=0; i < n_files; i++) {
+        integration_result_t *r=&results[i];
+        this=r->depthfile;
         if(!this->use_in_scaling)
             continue;
-        scaled_results[i]=integrate_depthfile(this, depthscale->low, depthscale->high);
-        i++;
-    }
-    for(i=0; i < n_scaled; i++) {
-        integration_result_t *r=&scaled_results[i];
-        this=r->depthfile;
         double conc=r->conc*100*depthscale->scale;
-        double stat_err=100.0*stat_error_normalized(scaled_results, n_scaled, i, depthscale);
+        double stat_err=100.0*stat_error_normalized(results, n_files, i, depthscale);
         double adensity=r->adensity*depthscale->scale;
         fprintf(out, result_line, this->uniq_id, this->use_in_scaling?"Yes":"No", this->Z, 3, elements[this->Z].name, this->A, conc, stat_err, adensity, r->counts);
         conc_all += conc;
@@ -159,21 +174,23 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     }
     fprintf(out, result_footer, conc_all, stat_error(conc_all, counts_all), adensity_all, counts_all); 
     fprintf(out, "SCALED CONC %g TO %g", depthscale->low, depthscale->high);
-    for(i=0; i < n_scaled; i++) {
-        fprintf(out, "  ");
-        integration_result_t *r=&scaled_results[i];
+    for(i=0; i < n_files; i++) {
+        integration_result_t *r=&results[i];
         this=r->depthfile;
+        if(!this->use_in_scaling)
+            continue;
+        fprintf(out, "  ");
         if(this->A) {
             fprintf(out, "%i%s: ", this->A, elements[this->Z].name);
         } else {
             fprintf(out, "%s: ", elements[this->Z].name);
         }
-        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(scaled_results, n_scaled, i, depthscale));
+        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(results, n_files, i, depthscale));
         fprint_value_full(out, val);
     }
-    fprintf(out, "\n");
+    fprintf(out, "\n\n");
     if(out != stdout) {
         fclose(out);
     }
-    free(scaled_results);
+    free(results);
 }
