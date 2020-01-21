@@ -1,4 +1,4 @@
-AC_INIT([erd_analyzer], [1.0.0])
+AC_INIT([erd_analyzer], [1.0.0], [jaakko.a.julin@jyu.fi])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 AC_PROG_CC
