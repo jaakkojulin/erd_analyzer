@@ -15,13 +15,13 @@
 #include <math.h>
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #else
 #define PACKAGE_STRING "erd_analyzer ?.?.?"
 #endif
-#include <depthprofile.h>
-#include <depthfile.h>
-#include <plot.h>
+#include "depthprofile.h"
+#include "depthfile.h"
+#include "plot.h"
 
 #define xstr(s) str(s)
 #define str(s) #s

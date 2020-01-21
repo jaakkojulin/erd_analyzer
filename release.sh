@@ -18,10 +18,11 @@ do_release() {
     echo "CHECK THE STATUS OF THE REPOSITORY."
     read -p "About to tag the repo and create a bare (autogen.sh needs to be run) source package for version $version. Is this ok? ^C if not.";
     git tag $version
-    git archive -o "../histo_2d-$version-bare.tar.gz" --prefix="histo_2d-$version/" HEAD;
+    #git archive -o "../histo_2d-$version-bare.tar.gz" --prefix="histo_2d-$version/" HEAD;
     ./autogen.sh
     ./configure
     make dist
+    shasum -a 256 histo_2d-$version.tar.gz
 }
 
 
