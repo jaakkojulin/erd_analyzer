@@ -1,9 +1,24 @@
-#define VERSION 0.0.1
+/*
+    Copyright (C) 2014-2020 Jaakko Julin <jaakko.julin@gmail.com>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    See file COPYING for details.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define PACKAGE_STRING "erd_analyzer ?.?.?"
+#endif
 #include <depthprofile.h>
 #include <depthfile.h>
 #include <plot.h>
@@ -19,6 +34,9 @@
 #define ELEMENTSFILE DATADIR/elements.txt
 #define PLOTHEADERSFILE headers.txt
 #define MAX_LINE_LEN 100
+
+#define HELP_TEXT "Usage: %s prefix\n\n"
+#define  LICENCE_TEXT "This program is free software; you can redistribute it and/or modify\nit under the terms of the GNU Genera    l Public License as published by\nthe Free Software Foundation; either version 2 of the License, or\n(at your option) any later v    ersion.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied wa    rranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n"
 
 int main(int argc, char **argv) {
     rgbcolor_t *colors=NULL;
@@ -47,8 +65,10 @@ int main(int argc, char **argv) {
         case 1:
             break;
         default:
-            fprintf(stderr, "ERD analyzer version %s.\nUsage: %s [prefix]\n", xstr(VERSION), argv[0]);
-            return -1;
+            fprintf(stderr, "%s\n", PACKAGE_STRING);
+            fprintf(stderr, HELP_TEXT, argv[0]);
+            fprintf(stderr, LICENCE_TEXT);
+            return 0;
     }
     depthscale.low=-1000000.0;
     depthscale.high=1000000.0;

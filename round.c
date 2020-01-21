@@ -1,5 +1,12 @@
 #include "round.h"
 
+#ifndef HAVE_EXP10
+inline double exp10(double val) {
+    return pow(10.0, val);
+}
+#define HAVE_EXP10 1
+#endif
+
 int fprint_value_full(FILE *stream, value_err_t val) {
     return fprintf(stream, "%0.*f +- %0.*f", val.err_places, val.value, val.err_places, val.err);
 }
