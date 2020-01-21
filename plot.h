@@ -2,10 +2,10 @@
 #define _PLOT_H_
 
 
-#include <rgbcolor.h>
-#include <elements.h>
-#include <depthfile.h>
-#include <depthprofile.h>
+#include "rgbcolor.h"
+#include "elements.h"
+#include "depthfile.h"
+#include "depthprofile.h"
 
 typedef struct plot_options {
     int x_autoscale; /* Let gnuplot handle x scales */

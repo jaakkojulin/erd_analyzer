@@ -1,8 +1,8 @@
 #ifndef _DEPTHPROFILE_H_
 #define _DEPTHPROFILE_H_
 
-#include <depthfile.h>
-#include <elements.h>
+#include "depthfile.h"
+#include "elements.h"
 
 typedef struct depth_scale {
     double low;

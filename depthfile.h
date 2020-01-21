@@ -1,8 +1,8 @@
 #ifndef _DEPTHFILE_H_
 #define _DEPTHFILE_H_
 
-#include <rgbcolor.h>
-#include <elements.h>
+#include "rgbcolor.h"
+#include "elements.h"
 
 typedef struct depthbin {
     double low;
