@@ -8,6 +8,7 @@ You have been warned.
 "
 
 do_release() {
+    ./autogen.sh
     make clean;
     make distclean;
     git clean -f;
