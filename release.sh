@@ -22,7 +22,7 @@ do_release() {
     ./autogen.sh
     ./configure
     make dist
-    shasum -a 256 histo_2d-$version.tar.gz
+    shasum -a 256 erd_analyzer-$version.tar.gz
 }
 
 
