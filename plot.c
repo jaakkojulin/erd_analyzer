@@ -62,7 +62,7 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
             this->color = colors; /* The first color is the default */ 
         }
         if(this->A) {
-            fprintf(out, "%s '%s' index %i using (($1+$2)/2):($3*SCALE) with lines lt 1 lw %g lc rgbcolor \"#%02x%02x%02x\" title \"%i-%s\"%s", i?"":"plot", plotdatafilename, i, plot_options->linewidth, this->color->r, this->color->g, this->color->b, this->A, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
+            fprintf(out, "%s '%s' index %i using (($1+$2)/2):($3*SCALE) with lines lt 1 lw %g lc rgbcolor \"#%02x%02x%02x\" title \"{}^{%i}%s\"%s", i?"":"plot", plotdatafilename, i, plot_options->linewidth, this->color->r, this->color->g, this->color->b, this->A, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
         } else {
             fprintf(out, "%s '%s' index %i using (($1+$2)/2):($3*SCALE) with lines lt 1 lw %g lc rgbcolor \"#%02x%02x%02x\" title \"%s\"%s", i?"":"plot", plotdatafilename, i, plot_options->linewidth, this->color->r, this->color->g, this->color->b, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
         }
