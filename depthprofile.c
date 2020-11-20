@@ -70,6 +70,15 @@ integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, dou
     return r;
 }
 
+double element_ratio(depthfile_t *dividend, depthfile_t *divisor, depth_scale_t *depthscale) {
+    if(!dividend || !divisor)
+        return 0.0;
+    integration_result_t r1=integrate_depthfile(dividend, depthscale->low, depthscale->high);
+    integration_result_t r2=integrate_depthfile(divisor,  depthscale->low, depthscale->high);
+    fprintf(stderr, "ratio of ID: %i and ID: %i is %g\n", dividend->uniq_id, divisor->uniq_id, r1.conc/r2.conc);
+    return r1.conc/r2.conc;
+}
+
 double areal_density(depthfile_t *depthfile, double depth_low, double depth_high) {
     double sum=0.0;
     return sum;

@@ -148,6 +148,10 @@ int main(int argc, char **argv) {
             }
             continue;
         }
+        if(sscanf(user_input, "ratio %100s %100s", s, s2)==2) {
+            element_ratio(find_depthfile_by_name(depthfiles, elements, s), find_depthfile_by_name(depthfiles, elements, s2), &depthscale);
+            continue;
+        }
         if(sscanf(user_input, "previous %100s", s)==1) {
             this=find_depthfile_by_name(depthfiles, elements, s);
             if(this)
@@ -174,6 +178,7 @@ int main(int argc, char **argv) {
             continue;
         }
         if(sscanf(user_input, "load prefix %100s", s)==1) {
+            fprintf(stderr, "Attempting to read depth files with prefix %s\n", s);
             depthfiles=load_depthfiles_by_prefix(elements, depthfiles, colors, s);
             continue;
         }

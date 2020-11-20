@@ -21,6 +21,7 @@ typedef struct integration_result {
 } integration_result_t;
 
 integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, double high);
+double element_ratio(depthfile_t *dividend, depthfile_t *divisor, depth_scale_t *depthscale);
 double areal_density(depthfile_t *depthfile, double depth_low, double depth_high);
 double average_concentration(depthfile_t *depthfile, double depth_low, double depth_high, double *sum_out, int *counts_out);
 void find_scaling_factor(depthfile_t *depthfiles, depth_scale_t *depthscale);
