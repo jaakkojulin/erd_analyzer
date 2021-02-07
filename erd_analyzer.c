@@ -22,6 +22,7 @@
 #include "depthprofile.h"
 #include "depthfile.h"
 #include "plot.h"
+#include "csv.h"
 
 #define xstr(s) str(s)
 #define str(s) #s
@@ -253,6 +254,10 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Creating plot with scaling factor: %g\n", depthscale.scale);
             create_plotfile(depthfiles, elements, colors, &depthscale, &plot_options, xstr(PLOTHEADERSFILE), s);
             continue;
+        }
+        if(sscanf(user_input, "csv %s", s)==1) {
+            fprintf(stderr, "Creating CSV output with scaling factor: %g\n", depthscale.scale);
+            create_csv(depthfiles, elements, &depthscale, s);
         }
         if(strncmp(user_input, "scale", 5)==0) {
             find_scaling_factor(depthfiles, &depthscale);
