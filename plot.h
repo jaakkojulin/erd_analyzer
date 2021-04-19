@@ -16,6 +16,7 @@ typedef struct plot_options {
     double x_high;
     double y_low;
     double y_high;
+    int nanometers;
 } plot_options_t;
 
 void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *colors, depth_scale_t *depthscale, plot_options_t *plot_options, char *headers_filename, char *filename);

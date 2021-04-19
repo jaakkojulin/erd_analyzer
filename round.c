@@ -15,7 +15,7 @@ int snprint_value_full(char *str, size_t size, value_err_t val) {
     return snprintf(str, size, "%0.*f +- %0.*f", val.err_places, val.value, val.err_places, val.err);
 }
 
-value_err_t value_from_numbers(double value, double err) {
+value_err_t value_from_numbers(double value, double err, int min_places) {
     double err_mag=floor(log10(err));
     double err_norm=err*exp10(-err_mag);
     value_err_t rounded;
@@ -25,6 +25,10 @@ value_err_t value_from_numbers(double value, double err) {
     } else {
         rounded.err=ceil(err_norm)*exp10(err_mag);
     }
+    if(err_mag > 0)
+        err_mag = 0;
+    if(-err_mag < min_places)
+        err_mag = -min_places;
     rounded.err_places = (int)(-err_mag);
     rounded.value=round(exp10(-err_mag)*value)*exp10(err_mag);
 #ifdef DEBUG

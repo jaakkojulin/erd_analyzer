@@ -43,7 +43,6 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
     /* Write a SCALE= value according to "results" */
     /* Count how many depthfiles.*/
     n=number_of_depthfiles(depthfiles);
-    fprintf(out, "SCALE=100*%lf\n", depthscale->scale);
     if(plot_options->scalinglines) {
         fprintf(out, "set arrow 1 from %g,%g to %g,%g nohead lt 0 lw %g\n", depthscale->low, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->low, plot_options->y_autoscale?100.0:plot_options->y_high, plot_options->linewidth);
         fprintf(out, "set arrow 2 from %g,%g to %g,%g nohead lt 0 lw %g\n", depthscale->high, plot_options->y_autoscale?0.0:plot_options->y_low, depthscale->high, plot_options->y_autoscale?100.0:plot_options->y_high, plot_options->linewidth);
@@ -54,7 +53,9 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
     }
     if(!plot_options->y_autoscale) {
         fprintf(out, "set yrange [%g:%g]\n", plot_options->y_low, plot_options->y_high);
-    }    
+    }
+    fprintf(out, "plot \\\n");
+    char *title=NULL;
     for(this=depthfiles; this != NULL; this=this->next) {
         if(!this->plot)
             continue;
@@ -62,17 +63,25 @@ void create_plotfile(depthfile_t *depthfiles, element_t *elements, rgbcolor_t *c
             this->color = colors; /* The first color is the default */ 
         }
         if(this->A) {
-            fprintf(out, "%s '%s' index %i using (($1+$2)/2):($3*SCALE) with lines lt 1 lw %g lc rgbcolor \"#%02x%02x%02x\" title \"{}^{%i}%s\"%s", i?"":"plot", plotdatafilename, i, plot_options->linewidth, this->color->r, this->color->g, this->color->b, this->A, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
+            asprintf(&title, "{}^{%i}%s", this->A, elements[this->Z].name);
         } else {
-            fprintf(out, "%s '%s' index %i using (($1+$2)/2):($3*SCALE) with lines lt 1 lw %g lc rgbcolor \"#%02x%02x%02x\" title \"%s\"%s", i?"":"plot", plotdatafilename, i, plot_options->linewidth, this->color->r, this->color->g, this->color->b, elements[this->Z].name, (i<n-1)?", \\\n":"\n");
+            asprintf(&title, "%s", elements[this->Z].name);
         }
+        fprintf(out, "'%s' index %i using 1:2 with lines lt 1 lw %g lc rgbcolor \"#%02x%02x%02x\" title \"%s\"%s", plotdatafilename, i, plot_options->linewidth, this->color->r, this->color->g, this->color->b, title, (i<n-1)?", \\\n":"\n");
         i++;
     }
+    free(title);
     for(this=depthfiles; this != NULL;  this=this->next) {
         if(!this->plot)
             continue;
-        for(i=0; i<this->n_depths; i++) { 
-            fprintf(outdata, "%g %g %g\n", this->bins[i].low, this->bins[i].high, this->bins[i].conc);
+        for(i=0; i<this->n_depths-1; i++) {
+            if(plot_options->nanometers) {
+                fprintf(outdata, "%g", 10.0*0.5*(this->bins[i].low_ug + this->bins[i+1].low_ug)/(depthscale->density));
+            } else {
+                fprintf(outdata, "%g", (this->bins[i].low+this->bins[i+1].low)/2.0);
+            }
+            fprintf(outdata, " %g", 100.0*this->bins[i].conc * depthscale->scale);
+            fprintf(outdata, "\n");
         }
         fprintf(outdata, "\n\n");
     }

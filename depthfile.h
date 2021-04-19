@@ -7,6 +7,7 @@
 typedef struct depthbin {
     double low;
     double high;
+    double low_ug;
     int counts;
     double conc;
 } depthbin_t;

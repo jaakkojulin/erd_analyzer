@@ -8,6 +8,7 @@ typedef struct depth_scale {
     double low;
     double high;
     double scale;
+    double density;
 } depth_scale_t;
 
 typedef struct integration_result {

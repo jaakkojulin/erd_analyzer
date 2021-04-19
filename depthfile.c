@@ -37,7 +37,7 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
         return NULL;
     }
     in=fopen(filename, "r");
-    double depth, b, c, conc, e, f;
+    double depth, low_ug, c, conc, e, f;
     double bin_correction=0.0;
     int counts;
     int depth_i=0;
@@ -61,10 +61,11 @@ depthfile_t *load_depthfile(rgbcolor_t *colors, char *filename, int Z, int A) {
         if(*line == '#')
             continue;
 
-        if(sscanf(line, "%lf %lf %lf %lf %lf %lf %i\n", &depth, &b, &c, &conc, &e, &f, &counts)==7) {
+        if(sscanf(line, "%lf %lf %lf %lf %lf %lf %i\n", &depth, &low_ug, &c, &conc, &e, &f, &counts)==7) {
             depthbin_t *bin=&depthfile->bins[depth_i];
             bin->low=depth; /* Will be corrected later */
             bin->high=depth; /* Will be corrected later */
+            bin->low_ug=low_ug; /* This is already correct */
             bin->counts=counts;
             bin->conc=conc;
             depth_i++;
@@ -236,7 +237,7 @@ void print_depthfiles(depthfile_t *depthfiles) {
 }
 
 depthfile_t *find_depthfile_by_name(depthfile_t *depthfiles, element_t *elements, char *str) {
-    int number=0, i, l_remaining, id, A, Z;
+    int number=0, i, l_remaining, id, A, Z=0;
     depthfile_t *this=NULL;
     if(str==NULL)
         return NULL;

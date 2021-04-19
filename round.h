@@ -12,5 +12,5 @@ typedef struct value_err {
 
 int fprint_value_full(FILE *stream, value_err_t val);
 int snprint_value_full(char *str, size_t size, value_err_t val);
-value_err_t value_from_numbers(double value, double err);
+value_err_t value_from_numbers(double value, double err, int min_places);
 #endif // _ROUND_H_

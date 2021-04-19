@@ -152,11 +152,9 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
         } else {
             fprintf(out, "%s: ", elements[this->Z].name);
         }
-        if(r->adensity < 10.0 ) {
-            fprintf(out, "%.1f", r->adensity);
-        } else {
-            fprintf(out, "%.0f", r->adensity);
-        }
+        //fprintf(out, "%.2f+-%.2f", r->adensity,stat_error(r->adensity, r->counts));
+        value_err_t val=value_from_numbers(r->adensity, stat_error(r->adensity, r->counts), r->adensity<10.0?2:1);
+        fprint_value_full(out, val);
     }
 
     fprintf(out, "\n\n");
@@ -194,7 +192,7 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
         } else {
             fprintf(out, "%s: ", elements[this->Z].name);
         }
-        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(results, n_files, i, depthscale));
+        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(results, n_files, i, depthscale), 0);
         fprint_value_full(out, val);
     }
     fprintf(out, "\n\n");

@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
     depthscale.low=-1000000.0;
     depthscale.high=1000000.0;
     depthscale.scale=1.0;
+    depthscale.density=1.0;
     plot_options.x_autoscale=1;
     plot_options.y_autoscale=1;
     plot_options.scalinglines=1;
@@ -82,6 +83,7 @@ int main(int argc, char **argv) {
     plot_options.y_low=0.0;
     plot_options.x_high=0.0;
     plot_options.y_high=0.0;
+    plot_options.nanometers=0;
     int Z, A;
     depthfile_t *this;
     char *s=calloc(101, sizeof(char));
@@ -139,6 +141,11 @@ int main(int argc, char **argv) {
             fprintf(stderr, "High set to %g, scaling factor now: %g\n", depthscale.high, depthscale.scale);
             continue;
         }
+        if(sscanf(user_input, "set density %lf", &depthscale.density)==1) {
+            fprintf(stderr, "Density set to %g g/cm3\n", depthscale.density);
+            continue;
+        }
+
         if(strncmp(user_input, "results", 7)==0) { 
             make_results_table(depthfiles, elements, NULL, &depthscale);
             continue;
@@ -265,6 +272,15 @@ int main(int argc, char **argv) {
         }
         if(sscanf(user_input, "set scale %lf", &depthscale.scale)==1) {
             fprintf(stderr, "Manual scaling factor now: %g\n", depthscale.scale);
+            continue;
+        }
+        if(strncmp(user_input, "set nanometers",14) == 0) {
+            fprintf(stderr, "Output X-axis in nm.\n");
+            plot_options.nanometers = 1;
+            continue;
+        }
+        if(strncmp(user_input, "unset nanometers",16) == 0) {
+            plot_options.nanometers = 0;
             continue;
         }
     }
