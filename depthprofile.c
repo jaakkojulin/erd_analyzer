@@ -15,13 +15,13 @@ double stat_error(double value, int counts) {
     return(value/(sqrt(1.0*(counts-1))));
 }
 
-double stat_error_normalized(integration_result_t *results, int n, int i_this, depth_scale_t *depthscale) {
+double stat_error_normalized(const integration_result_t *results, int n, int i_this, const depth_scale_t *depthscale) {
     int i;
     double err=0.0;
     double conc=results[i_this].conc;
     double scale=depthscale->scale;
     for(i=0; i < n; i++) {
-        integration_result_t *r=&results[i];
+        const integration_result_t *r=&results[i];
         if(!r->depthfile->use_in_scaling)
             continue;
         if(r->counts < 2)
@@ -79,22 +79,14 @@ double element_ratio(depthfile_t *dividend, depthfile_t *divisor, depth_scale_t 
     return r1.conc/r2.conc;
 }
 
-double areal_density(depthfile_t *depthfile, double depth_low, double depth_high) {
-    double sum=0.0;
-    return sum;
-}
-
 void find_scaling_factor(depthfile_t *depthfiles, depth_scale_t *depthscale) {
     depthfile_t *this;
-    double adensity=0.0, conc=0.0;
-    int counts=0;
+    double conc=0.0;
     for(this=depthfiles; this != NULL; this=this->next) {
         if(!this->use_in_scaling)
             continue;
         integration_result_t r=integrate_depthfile(this, depthscale->low, depthscale->high);
         conc += r.conc;
-        adensity += r.adensity;
-        counts += r.counts;
     }
     /* TODO: depthscale->low or high may be different from actual lows or highs in depthfiles(binning) */
     depthscale->scale=1.0/conc;
@@ -106,6 +98,26 @@ void print_depthprofile(depthfile_t *depthfile) {
         return;
     for(i=0; i<depthfile->n_depths; i++) {
         fprintf(stdout, "%i %i %5g %5g %7g\n", depthfile->Z, depthfile->A, depthfile->bins[i].low, depthfile->bins[i].high, depthfile->bins[i].conc);
+    }
+}
+
+
+void print_scaled_concs(const integration_result_t *results, int n_files, const element_t *elements, const depth_scale_t *depthscale, FILE *out) {
+    int i;
+    depthfile_t *this;
+    for(i=0; i < n_files; i++) {
+        const integration_result_t *r=&results[i];
+        this=r->depthfile;
+        if(!this->use_in_scaling)
+            continue;
+        fprintf(out, "  ");
+        if(this->A) {
+            fprintf(out, "%i%s: ", this->A, elements[this->Z].name);
+        } else {
+            fprintf(out, "%s: ", elements[this->Z].name);
+        }
+        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(results, n_files, i, depthscale), 0);
+        fprint_value_full(out, val);
     }
 }
 
@@ -141,8 +153,11 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
         counts_all += r.counts;
         i++;
     }
-    fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, adensity_all, counts_all); 
-    fprintf(out, "UNSCALED AREALDENSITY %g TO %g", depthscale->low, depthscale->high);
+    fprintf(out, result_footer, conc_all*100.0, stat_error(conc_all, counts_all)*100.0, adensity_all, counts_all);
+    depthscale->scale = 1.0;
+    fprintf(out, "UNSCALED CONC %g TO %g", depthscale->low, depthscale->high);
+    print_scaled_concs(results, n_files, elements, depthscale, out);
+    fprintf(out, "\nUNSCALED AREALDENSITY %g TO %g", depthscale->low, depthscale->high);
     for(i=0; i < n_files; i++) {
         integration_result_t *r=&results[i];
         this=r->depthfile;
@@ -181,20 +196,7 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     }
     fprintf(out, result_footer, conc_all, stat_error(conc_all, counts_all), adensity_all, counts_all); 
     fprintf(out, "SCALED CONC %g TO %g", depthscale->low, depthscale->high);
-    for(i=0; i < n_files; i++) {
-        integration_result_t *r=&results[i];
-        this=r->depthfile;
-        if(!this->use_in_scaling)
-            continue;
-        fprintf(out, "  ");
-        if(this->A) {
-            fprintf(out, "%i%s: ", this->A, elements[this->Z].name);
-        } else {
-            fprintf(out, "%s: ", elements[this->Z].name);
-        }
-        value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(results, n_files, i, depthscale), 0);
-        fprint_value_full(out, val);
-    }
+    print_scaled_concs(results, n_files, elements, depthscale, out);
     fprintf(out, "\n\n");
     if(out != stdout) {
         fclose(out);

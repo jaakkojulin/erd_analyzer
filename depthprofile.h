@@ -23,9 +23,10 @@ typedef struct integration_result {
 
 integration_result_t integrate_depthfile(depthfile_t *depthfile, double low, double high);
 double element_ratio(depthfile_t *dividend, depthfile_t *divisor, depth_scale_t *depthscale);
-double areal_density(depthfile_t *depthfile, double depth_low, double depth_high);
 double average_concentration(depthfile_t *depthfile, double depth_low, double depth_high, double *sum_out, int *counts_out);
 void find_scaling_factor(depthfile_t *depthfiles, depth_scale_t *depthscale);
+void print_scaled_concs(const integration_result_t *results, int n_files, const element_t *elements, const depth_scale_t *depthscale, FILE *out);
 void make_results_table(depthfile_t *depthfiles, element_t *elements, char *filename, depth_scale_t *depthscale);
 double stat_error(double value, int counts);
+double stat_error_normalized(const integration_result_t *results, int n, int i_this, const depth_scale_t *depthscale);
 #endif
