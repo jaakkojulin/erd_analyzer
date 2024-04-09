@@ -7,8 +7,8 @@ inline double exp10(double val) {
 #define HAVE_EXP10 1
 #endif
 
-int fprint_value_full(FILE *stream, value_err_t val) {
-    return fprintf(stream, "%0.*f +- %0.*f", val.err_places, val.value, val.err_places, val.err);
+int fprint_value_full(FILE *stream, value_err_t val, int len) {
+    return fprintf(stream, "%*.*f +- %0.*f", len, val.err_places, val.value, val.err_places, val.err);
 }
 
 int snprint_value_full(char *str, size_t size, value_err_t val) {

@@ -117,7 +117,7 @@ void print_scaled_concs(const integration_result_t *results, int n_files, const 
             fprintf(out, "%s: ", elements[this->Z].name);
         }
         value_err_t val=value_from_numbers(r->conc*100.0*depthscale->scale, 100.0*stat_error_normalized(results, n_files, i, depthscale), 0);
-        fprint_value_full(out, val);
+        fprint_value_full(out, val, 5);
     }
 }
 
@@ -128,10 +128,10 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
     FILE *out=NULL;
     int n_files=0;
     int i;
-    static const char *result_header=" ID Use?   Z         A  Conc\%   Err  Areal d.  Counts\n------------------------------------------------------\n";
+    static const char *result_header=" ID Use?   Z         A  Conc\%    Err   Areal d.  Counts\n------------------------------------------------------\n";
     /*                               "666 Yes  zzz (Zz) aaa  66.66  66.66   xxxxxx  666666  */
-    static const char *result_line="%3i  %3s %3i (%*s) %3i  %5.2f  %5.2f   %6.1f  %6i\n";
-    static const char *result_footer="Total:                %7.2f %6.2f   %6.1f %7i\n------------------------------------------------------\n\n";   
+    static const char *result_line="%3i  %3s %3i (%*s) %3i  %6.3f %6.3f   %6.1f  %6i\n";
+    static const char *result_footer="Total:                 %7.3f %7.3f   %6.1f %7i\n------------------------------------------------------\n\n";
     
     if(filename) {
         out=fopen(filename, "w");
@@ -169,7 +169,7 @@ void make_results_table(depthfile_t *depthfiles, element_t *elements, char *file
         }
         //fprintf(out, "%.2f+-%.2f", r->adensity,stat_error(r->adensity, r->counts));
         value_err_t val=value_from_numbers(r->adensity, stat_error(r->adensity, r->counts), r->adensity<10.0?2:1);
-        fprint_value_full(out, val);
+        fprint_value_full(out, val, 5);
     }
 
     fprintf(out, "\n\n");
