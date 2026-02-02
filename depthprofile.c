@@ -75,7 +75,10 @@ double element_ratio(depthfile_t *dividend, depthfile_t *divisor, depth_scale_t 
         return 0.0;
     integration_result_t r1=integrate_depthfile(dividend, depthscale->low, depthscale->high);
     integration_result_t r2=integrate_depthfile(divisor,  depthscale->low, depthscale->high);
-    fprintf(stderr, "ratio of ID: %i and ID: %i is %g\n", dividend->uniq_id, divisor->uniq_id, r1.conc/r2.conc);
+    double ratio = r1.conc/r2.conc;
+    double relerr = sqrt(1.0/r1.counts + 1.0/r2.counts);
+    fprintf(stderr, "ratio of ID: %i and ID: %i is %.5lf +/- %.5lf\n", dividend->uniq_id, divisor->uniq_id, ratio, ratio * relerr);
+    fprintf(stderr, "ratio calculation based on conc %g %% (%i counts) and conc %g %% (%i counts)\n", r1.conc*100.0, r1.counts, r2.conc*100.0, r2.counts); 
     return r1.conc/r2.conc;
 }
 
